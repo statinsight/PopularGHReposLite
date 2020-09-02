@@ -1,0 +1,67 @@
+name: Update CI
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '19 1 * * *'
+
+jobs:
+  
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+      
+    - name: Init - Vars
+      id: initvars
+      run: |
+       echo "::set-output name=current_date::$(date -u +%Y-%m-%d)"
+    - name: Init - Configure Git
+      run: |
+        git config --global user.email "40789489+litetex@users.noreply.github.com"
+        git config --global user.name "litetex's Bot"
+       
+    - name: Setup Scanner 
+      run: |
+        mkdir build
+        cd build
+        curl -L https://github.com/litetex/TopGHRepos/releases/download/v0.1.2/TopGHRepos.CMD-linux-x64.zip -o temp.zip
+        unzip temp.zip
+        rm temp.zip
+        chmod +x TopGHRepos.CMD
+        
+    - name: Run Scanner
+      run: ./TopGHRepos.CMD
+      working-directory: build
+      env:
+        GH_PAT: ${{ secrets.GH_PAT }}
+      timeout-minutes: 20
+      
+    - name: Init Tools
+      run: |
+        cp $GITHUB_WORKSPACE/bin/sqlite3 build/sqlite3
+        chmod +x build/sqlite3
+        
+    - name: Convert database to csv
+      run: |
+        echo "SELECT StargazersCount AS Stars, OwnerLoginName AS Owner, Name AS Repo" > query.sql
+        echo "FROM RepositoryInfos" >> query.sql
+        echo "ORDER BY StargazersCount DESC;" >> query.sql
+        ./sqlite3 database.sqlite -header -csv < query.sql > ${{ steps.initvars.outputs.current_date }}.csv
+      working-directory: build
+      
+    - name: Transfer data into git repo
+      run: |
+        mv build/${{ steps.initvars.outputs.current_date }}.csv $GITHUB_WORKSPACE/${{ steps.initvars.outputs.current_date }}.csv
+      
+    - name: Clean
+      run: rm -r build
+      
+    - name: Commit and Push
+      run: |
+        cd $GITHUB_WORKSPACE
+        git add -A
+        git commit -m "Added files of ${{ steps.initvars.outputs.current_date }}"
+        git tag v${{ steps.initvars.outputs.current_date }}
+        git push origin
