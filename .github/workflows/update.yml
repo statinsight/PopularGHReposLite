@@ -19,8 +19,8 @@ jobs:
        echo "::set-output name=current_date::$(date -u +%Y-%m-%d)"
     - name: Init - Configure Git
       run: |
-        git config --global user.email "40789489+litetex@users.noreply.github.com"
-        git config --global user.name "litetex's Bot"
+        git config --global user.email "update.bot@nosuchmail.nonexistantaddress"
+        git config --global user.name "Update Bot"
        
     - name: Setup Scanner 
       run: |
