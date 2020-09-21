@@ -53,7 +53,7 @@ jobs:
       
     - name: Transfer data into git repo
       run: |
-        mv build/${{ steps.initvars.outputs.current_date }}.csv $GITHUB_WORKSPACE/${{ steps.initvars.outputs.current_date }}.csv
+        mv build/${{ steps.initvars.outputs.current_date }}.csv $GITHUB_WORKSPACE/data/${{ steps.initvars.outputs.current_date }}.csv
       
     - name: Clean
       run: rm -r build
