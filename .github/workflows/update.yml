@@ -17,6 +17,7 @@ jobs:
       id: initvars
       run: |
        echo "::set-output name=current_date::$(date -u +%Y-%m-%d)"
+       
     - name: Init - Configure Git
       run: |
         git config --global user.email "update.bot@nosuchmail.nonexistantaddress"
@@ -63,5 +64,4 @@ jobs:
         cd $GITHUB_WORKSPACE
         git add -A
         git commit -m "Added files of ${{ steps.initvars.outputs.current_date }}"
-        git tag v${{ steps.initvars.outputs.current_date }}
         git push origin
