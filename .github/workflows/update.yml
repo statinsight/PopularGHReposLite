@@ -3,8 +3,8 @@ name: Update CI
 on:
   workflow_dispatch:
   schedule:
-    - cron: '19 1 * * *'
-
+    - cron: '31 0 * * *'
+      
 jobs:
   
   build:
@@ -23,45 +23,35 @@ jobs:
         git config --global user.email "update.bot@nosuchmail.nonexistantaddress"
         git config --global user.name "Update Bot"
        
-    - name: Setup Scanner 
+    - name: Download full data
       run: |
         mkdir build
         cd build
-        curl -L https://github.com/litetex/TopGHRepos/releases/download/v0.1.2/TopGHRepos.CMD-linux-x64.zip -o temp.zip
-        unzip temp.zip
-        rm temp.zip
-        chmod +x TopGHRepos.CMD
-        
-    - name: Run Scanner
-      run: ./TopGHRepos.CMD
-      working-directory: build
-      env:
-        GH_PAT: ${{ secrets.GH_PAT }}
-      timeout-minutes: 20
-      
+        curl -L https://raw.githubusercontent.com/statinsight/PopularGHRepos/master/data/${{ steps.initvars.outputs.current_date }}.sqlite -o database.sqlite
+   
     - name: Init Tools
       run: |
         cp $GITHUB_WORKSPACE/bin/sqlite3 build/sqlite3
         chmod +x build/sqlite3
         
-    - name: Convert database to csv
+    - name: Convert database to thin csv
       run: |
         echo "SELECT StargazersCount AS Stars, OwnerLoginName AS Owner, Name AS Repo" > query.sql
         echo "FROM RepositoryInfos" >> query.sql
         echo "ORDER BY StargazersCount DESC;" >> query.sql
-        ./sqlite3 database.sqlite -header -csv < query.sql > ${{ steps.initvars.outputs.current_date }}.csv
+        ./sqlite3 database.sqlite -header -csv < query.sql > db.csv
       working-directory: build
       
     - name: Transfer data into git repo
       run: |
-        mv build/${{ steps.initvars.outputs.current_date }}.csv $GITHUB_WORKSPACE/data/${{ steps.initvars.outputs.current_date }}.csv
+        mkdir -p data
+        mv build/db.csv data/${{ steps.initvars.outputs.current_date }}.csv
       
     - name: Clean
       run: rm -r build
       
     - name: Commit and Push
       run: |
-        cd $GITHUB_WORKSPACE
         git add -A
         git commit -m "Added files of ${{ steps.initvars.outputs.current_date }}"
         git push origin
