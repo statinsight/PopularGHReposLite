@@ -35,8 +35,7 @@ jobs:
    
     - name: Init Tools
       run: |
-        cp $GITHUB_WORKSPACE/bin/sqlite3 build/sqlite3
-        chmod +x build/sqlite3
+        sudo apt-get install -y sqlite3
         
     - name: Convert database to thin csv
       run: |
