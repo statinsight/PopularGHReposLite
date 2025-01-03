@@ -42,7 +42,7 @@ jobs:
         echo "SELECT StargazersCount AS Stars, OwnerLoginName AS Owner, Name AS Repo" > query.sql
         echo "FROM RepositoryInfos" >> query.sql
         echo "ORDER BY StargazersCount DESC;" >> query.sql
-        ./sqlite3 database.sqlite -header -csv < query.sql > db.csv
+        sqlite3 database.sqlite -header -csv < query.sql > db.csv
       working-directory: build
       
     - name: Transfer data into git repo
